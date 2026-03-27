@@ -127,6 +127,45 @@ tbody td{padding:10px 14px;color:#2D3748;vertical-align:middle}
 .link-a{color:var(--azul-c);text-decoration:none;font-weight:700}
 .link-a:hover{text-decoration:underline}
 .pag{padding:12px 22px;display:flex;align-items:center;gap:8px;justify-content:flex-end;border-top:1.5px solid var(--borda);font-size:.82rem;color:var(--cinza)}
+
+/* Filtros período */
+.filtros-bar{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:16px 22px;margin-bottom:20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.filtros-bar label{font-size:.82rem;font-weight:700;color:var(--cinza);white-space:nowrap}
+.filtros-bar input[type=date]{padding:8px 12px;border:1.5px solid var(--borda);border-radius:8px;font-family:'Nunito Sans',sans-serif;font-size:.85rem;color:#2D3748;background:var(--cinza-cl)}
+.filtros-bar input[type=date]:focus{outline:none;border-color:var(--azul-c)}
+.filtros-bar select{padding:8px 12px;border:1.5px solid var(--borda);border-radius:8px;font-family:'Nunito Sans',sans-serif;font-size:.85rem;color:#2D3748;background:var(--cinza-cl);appearance:none;min-width:160px}
+.btn-filtrar{background:var(--azul);color:#fff;padding:8px 18px;font-size:.83rem}
+.btn-filtrar:hover{background:var(--azul-m)}
+.btn-limpar-filtro{background:var(--cinza-cl);color:var(--cinza);border:1.5px solid var(--borda);padding:8px 14px;font-size:.83rem}
+.btn-limpar-filtro:hover{background:var(--borda)}
+.btn-print{background:#fff;color:var(--azul);border:1.5px solid var(--azul);padding:10px 20px;font-size:.85rem}
+.btn-print:hover{background:var(--bg)}
+
+/* Tabela ranking consultores */
+.ranking-card{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px}
+.ranking-card h3{font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:800;color:var(--azul);padding:18px 22px 0}
+.ranking-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.ranking-table thead th{background:var(--azul);color:#fff;padding:10px 16px;text-align:left;font-family:'Nunito',sans-serif;font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+.ranking-table thead th:last-child{text-align:center}
+.ranking-table tbody tr{border-bottom:1px solid #EDF2F7;transition:background .15s}
+.ranking-table tbody tr:hover{background:var(--bg)}
+.ranking-table tbody td{padding:10px 16px;color:#2D3748;vertical-align:middle}
+.ranking-table tbody td:first-child{font-weight:700;color:var(--cinza);width:40px}
+.ranking-table tbody td:nth-child(3){text-align:center}
+.qtd-badge{display:inline-block;background:var(--azul);color:#fff;border-radius:20px;padding:2px 14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem}
+.bar-wrap{height:8px;background:#EDF2F7;border-radius:4px;min-width:80px}
+.bar-fill{height:8px;background:linear-gradient(90deg,var(--azul),var(--azul-c));border-radius:4px;transition:width .4s}
+
+/* Print */
+@media print{
+  header,.nav-tabs,.dash-actions,.filtros-bar .btn-filtrar,.filtros-bar .btn-limpar-filtro,.btn-print,.btn-excel,.btn-refresh,.pag,#busca{display:none!important}
+  body{background:#fff}
+  .dash-wrap{padding:8px}
+  .kpi-grid{grid-template-columns:repeat(4,1fr)}
+  .ranking-card,.table-card,.kpi{box-shadow:none;border:1px solid #ddd}
+  .charts-grid{display:none}
+  .page{display:block!important}
+}
 .pb{background:var(--cinza-cl);border:1px solid var(--borda);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.82rem;font-weight:700;color:var(--azul)}
 .pb:hover{background:var(--bg)}
 .pb.active{background:var(--azul);color:#fff;border-color:var(--azul)}
@@ -196,8 +235,8 @@ tbody td{padding:10px 14px;color:#2D3748;vertical-align:middle}
           <input class="ctrl" type="url" id="linkConversa" placeholder="https://" required>
         </div>
         <div class="group">
-          <label class="label"><span class="num">5</span> Observações <span class="req">*</span></label>
-          <textarea class="ctrl" id="observacoes" placeholder="Observações relevantes sobre a matrícula..." required></textarea>
+          <label class="label"><span class="num">5</span> Observações</label>
+          <textarea class="ctrl" id="observacoes" placeholder="Observações relevantes sobre a matrícula..."></textarea>
         </div>
         <div class="group">
           <label class="label"><span class="num">6</span> Polo <span class="req">*</span></label>
@@ -247,8 +286,32 @@ tbody td{padding:10px 14px;color:#2D3748;vertical-align:middle}
       </div>
       <div class="dash-actions">
         <button class="btn btn-refresh" onclick="carregarDados()">🔄 Atualizar</button>
+        <button class="btn btn-print" onclick="window.print()">🖨️ Imprimir</button>
         <button class="btn btn-excel" onclick="exportarExcel()">📥 Exportar Excel</button>
       </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros-bar">
+      <label>Período:</label>
+      <input type="date" id="filtroInicio" onchange="aplicarFiltros()">
+      <span style="color:var(--cinza);font-size:.82rem">até</span>
+      <input type="date" id="filtroFim" onchange="aplicarFiltros()">
+      <label>Gestor(a):</label>
+      <select id="filtroGestor" onchange="aplicarFiltros()">
+        <option value="">Todos</option>
+        <option>Claudenice Maria Sales Ribeiro Barros</option>
+        <option>Clayton Eugenio Ramos dos Santos</option>
+        <option>Jhonatan Erik Ribeiro Dias</option>
+        <option>Rafael Marcos Pereira</option>
+      </select>
+      <label>Tipo:</label>
+      <select id="filtroTipo" onchange="aplicarFiltros()">
+        <option value="">Todos</option>
+        <option>Graduação</option>
+        <option>Ed. Continuada</option>
+      </select>
+      <button class="btn btn-limpar-filtro" onclick="limparFiltros()">✕ Limpar</button>
     </div>
 
     <div class="kpi-grid">
@@ -259,8 +322,19 @@ tbody td{padding:10px 14px;color:#2D3748;vertical-align:middle}
     </div>
 
     <div class="charts-grid">
-      <div class="chart-card"><h3>🏆 Top 10 Consultores</h3><canvas id="cConsultor"></canvas></div>
       <div class="chart-card"><h3>📍 Top 10 Polos</h3><canvas id="cPolo"></canvas></div>
+      <div class="chart-card"><h3>📈 Distribuição por Tipo</h3><canvas id="cTipo"></canvas></div>
+    </div>
+
+    <!-- Ranking completo consultores -->
+    <div class="ranking-card">
+      <h3>🏆 Ranking de Consultores</h3>
+      <div style="overflow-x:auto">
+        <table class="ranking-table">
+          <thead><tr><th>#</th><th>Consultor(a)</th><th>Qtd</th><th style="min-width:120px">Aceleradores</th></tr></thead>
+          <tbody id="tbodyRanking"></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="table-card">
@@ -309,8 +383,8 @@ const POLOS = ["Abelardo Luz - SC","Abreu e Lima - PE","Açailândia - MA","Acar
 let todosDados = [];
 let filtrados  = [];
 let pagAtual   = 1;
-const POR_PAG  = 15;
-let chartC = null, chartP = null;
+const POR_PAG  = 20;
+let chartC = null, chartP = null, chartT = null;
 
 // ── Navegação ──
 function showPage(id, btn) {
@@ -354,7 +428,7 @@ function setLoading(on) {
 }
 
 async function registrar() {
-  const campos=['consultor','candidato','dataPagamento','linkConversa','observacoes','polo','tipoCurso','gestor'];
+  const campos=['consultor','candidato','dataPagamento','linkConversa','polo','tipoCurso','gestor'];
   let valido=true;
   campos.forEach(id=>{
     const el=document.getElementById(id);
@@ -441,6 +515,7 @@ async function carregarDados() {
     document.getElementById('dashSub').textContent=`Atualizado em: ${agora} · ${todosDados.length} registro(s)`;
     filtrados=[...todosDados];
     atualizarKPIs();
+    renderRanking();
     renderCharts();
     pagAtual=1;
     renderTabela();
@@ -453,10 +528,11 @@ async function carregarDados() {
 
 function atualizarKPIs(){
   const hoje=new Date().toLocaleDateString('pt-BR');
-  document.getElementById('kTotal').textContent=todosDados.length;
-  document.getElementById('kConsult').textContent=new Set(todosDados.map(d=>d.consultor).filter(Boolean)).size;
-  document.getElementById('kPolos').textContent=new Set(todosDados.map(d=>d.polo).filter(Boolean)).size;
-  document.getElementById('kHoje').textContent=todosDados.filter(d=>{
+  const base=filtrados.length?filtrados:todosDados;
+  document.getElementById('kTotal').textContent=filtrados.length;
+  document.getElementById('kConsult').textContent=new Set(filtrados.map(d=>d.consultor).filter(Boolean)).size;
+  document.getElementById('kPolos').textContent=new Set(filtrados.map(d=>d.polo).filter(Boolean)).size;
+  document.getElementById('kHoje').textContent=filtrados.filter(d=>{
     try{return new Date(d.reg_em).toLocaleDateString('pt-BR')===hoje;}catch{return false;}
   }).length;
 }
@@ -467,21 +543,102 @@ function top10(campo){
   return Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,10);
 }
 
-function renderCharts(){
-  const cores=['#1A4E8C','#2466B0','#3B8DD4','#5BA4E4','#7EC0F0','#2D7A4F','#3DAA6B','#F5A623','#E8722A','#D93B3B'];
-  const t10c=top10('consultor');
-  const t10p=top10('polo');
-  if(chartC)chartC.destroy();
-  if(chartP)chartP.destroy();
-  chartC=new Chart(document.getElementById('cConsultor'),{type:'bar',data:{labels:t10c.map(([k])=>k.split(' ')[0]+' '+k.split(' ').slice(-1)[0]),datasets:[{data:t10c.map(([,v])=>v),backgroundColor:cores,borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
-  chartP=new Chart(document.getElementById('cPolo'),{type:'bar',data:{labels:t10p.map(([k])=>k.split(' - ')[0]),datasets:[{data:t10p.map(([,v])=>v),backgroundColor:cores,borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+function top10filtrado(campo){
+  const cnt={};
+  filtrados.forEach(d=>{if(d[campo])cnt[d[campo]]=(cnt[d[campo]]||0)+1;});
+  return Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,10);
 }
 
-function filtrar(){
+function renderCharts(){
+  const cores=['#1A4E8C','#2466B0','#3B8DD4','#5BA4E4','#7EC0F0','#2D7A4F','#3DAA6B','#F5A623','#E8722A','#D93B3B'];
+  const t10p=top10filtrado('polo');
+
+  // Tipo de curso
+  const cntTipo={};
+  filtrados.forEach(d=>{if(d.tipo_curso)cntTipo[d.tipo_curso]=(cntTipo[d.tipo_curso]||0)+1;});
+
+  if(chartP)chartP.destroy();
+  if(chartT)chartT.destroy();
+
+  chartP=new Chart(document.getElementById('cPolo'),{type:'bar',data:{labels:t10p.map(([k])=>k.split(' - ')[0]),datasets:[{data:t10p.map(([,v])=>v),backgroundColor:cores,borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+
+  const tipoLabels=Object.keys(cntTipo);
+  const tipoData=Object.values(cntTipo);
+  chartT=new Chart(document.getElementById('cTipo'),{
+    type:'doughnut',
+    data:{labels:tipoLabels,datasets:[{data:tipoData,backgroundColor:['#1A4E8C','#3B8DD4'],borderWidth:2}]},
+    options:{plugins:{legend:{position:'bottom'}}}
+  });
+}
+
+function parseDateBR(str){
+  if(!str)return null;
+  // formato dd/mm/yyyy ou yyyy-mm-dd
+  if(str.includes('/')){const[d,m,y]=str.split('/');return new Date(+y,+m-1,+d);}
+  if(str.includes('-')){const[y,m,d]=str.split('-');return new Date(+y,+m-1,+d);}
+  return null;
+}
+
+function aplicarFiltros(){
   const q=(document.getElementById('busca').value||'').toLowerCase();
-  filtrados=todosDados.filter(d=>Object.values(d).some(v=>String(v||'').toLowerCase().includes(q)));
+  const ini=document.getElementById('filtroInicio').value;
+  const fim=document.getElementById('filtroFim').value;
+  const gest=(document.getElementById('filtroGestor').value||'').toLowerCase();
+  const tipo=(document.getElementById('filtroTipo').value||'').toLowerCase();
+
+  filtrados=todosDados.filter(d=>{
+    // busca texto
+    if(q && !Object.values(d).some(v=>String(v||'').toLowerCase().includes(q)))return false;
+    // gestor
+    if(gest && !String(d.gestor||'').toLowerCase().includes(gest))return false;
+    // tipo
+    if(tipo && !String(d.tipo_curso||'').toLowerCase().includes(tipo))return false;
+    // período pela data de pagamento
+    if(ini||fim){
+      const dt=parseDateBR(d.data);
+      if(!dt)return false;
+      if(ini){const dtIni=new Date(ini+'T00:00:00');if(dt<dtIni)return false;}
+      if(fim){const dtFim=new Date(fim+'T23:59:59');if(dt>dtFim)return false;}
+    }
+    return true;
+  });
   pagAtual=1;
+  atualizarKPIs();
+  renderRanking();
+  renderCharts();
   renderTabela();
+}
+
+function filtrar(){aplicarFiltros();}
+
+function limparFiltros(){
+  document.getElementById('filtroInicio').value='';
+  document.getElementById('filtroFim').value='';
+  document.getElementById('filtroGestor').value='';
+  document.getElementById('filtroTipo').value='';
+  document.getElementById('busca').value='';
+  filtrados=[...todosDados];
+  pagAtual=1;
+  atualizarKPIs();
+  renderRanking();
+  renderCharts();
+  renderTabela();
+}
+
+function renderRanking(){
+  const cnt={};
+  filtrados.forEach(d=>{if(d.consultor)cnt[d.consultor]=(cnt[d.consultor]||0)+1;});
+  const sorted=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
+  const max=sorted[0]?.[1]||1;
+  const tbody=document.getElementById('tbodyRanking');
+  if(!sorted.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--cinza)">Nenhum registro</td></tr>';return;}
+  tbody.innerHTML=sorted.map(([nome,qtd],i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${nome}</td>
+      <td><span class="qtd-badge">${qtd}</span></td>
+      <td><div class="bar-wrap"><div class="bar-fill" style="width:${Math.round(qtd/max*100)}%"></div></div></td>
+    </tr>`).join('');
 }
 
 function fmtData(d){
