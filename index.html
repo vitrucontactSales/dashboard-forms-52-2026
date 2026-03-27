@@ -177,6 +177,32 @@ tbody td{padding:10px 14px;color:#2D3748;vertical-align:middle}
 .empty-state small{font-size:.82rem}
 
 /* Toast */
+/* Modal senha */
+.senha-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  z-index:500;display:flex;align-items:center;justify-content:center;
+}
+.senha-modal{
+  background:#fff;border-radius:var(--r);padding:32px;
+  width:100%;max-width:380px;box-shadow:0 16px 48px rgba(0,0,0,.2);
+  text-align:center;
+}
+.senha-modal h2{
+  font-family:'Nunito',sans-serif;font-weight:800;
+  font-size:1.15rem;color:var(--azul);margin-bottom:6px;
+}
+.senha-modal p{font-size:.85rem;color:var(--cinza);margin-bottom:20px}
+.senha-input{
+  width:100%;padding:12px 16px;border:1.5px solid var(--borda);
+  border-radius:9px;font-family:'Nunito Sans',sans-serif;
+  font-size:1rem;color:#2D3748;background:var(--cinza-cl);
+  text-align:center;letter-spacing:.15em;margin-bottom:12px;
+  transition:border-color .2s,box-shadow .2s;
+}
+.senha-input:focus{outline:none;border-color:var(--azul-c);box-shadow:0 0 0 3px rgba(59,141,212,.15)}
+.senha-erro{font-size:.82rem;color:var(--vermelho);margin-bottom:12px;display:none}
+.senha-btns{display:flex;gap:10px;justify-content:center}
+
 .toast{position:fixed;bottom:28px;right:28px;padding:14px 22px;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.92rem;box-shadow:0 6px 24px rgba(0,0,0,.15);display:flex;align-items:center;gap:10px;color:#fff;transform:translateY(100px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);z-index:999}
 .toast.show{transform:translateY(0);opacity:1}
 
@@ -370,6 +396,28 @@ tbody td{padding:10px 14px;color:#2D3748;vertical-align:middle}
   </div>
 </div>
 
+<!-- Modal senha dashboard -->
+<div class="senha-overlay" id="senhaOverlay" style="display:none">
+  <div class="senha-modal">
+    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" style="margin:0 auto 12px">
+      <circle cx="22" cy="22" r="22" fill="#E8F2FB"/>
+      <path d="M16 20v-4a6 6 0 0 1 12 0v4" stroke="#1A4E8C" stroke-width="2" stroke-linecap="round"/>
+      <rect x="13" y="20" width="18" height="13" rx="3" fill="#1A4E8C"/>
+      <circle cx="22" cy="27" r="2" fill="#fff"/>
+    </svg>
+    <h2>Área Restrita</h2>
+    <p>O Dashboard é exclusivo para gestores.<br>Digite a senha para continuar.</p>
+    <input class="senha-input" type="password" id="senhaInput"
+      placeholder="••••••••" maxlength="30"
+      onkeydown="if(event.key==='Enter')verificarSenha()">
+    <div class="senha-erro" id="senhaErro">Senha incorreta. Tente novamente.</div>
+    <div class="senha-btns">
+      <button class="btn btn-s" onclick="fecharSenha()" style="padding:10px 20px;font-size:.85rem">Cancelar</button>
+      <button class="btn btn-p" onclick="verificarSenha()" style="padding:10px 24px;font-size:.85rem">Entrar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -385,7 +433,59 @@ const SHEET_ID          = "1t0SBAPeGpHr8ZocEeD5akQ1xe80WEnqzGch3jeQmkqI";
 // O SHEET_ID é a parte XXXXXXXXXXXXXXX entre /d/ e /edit
 // ================================================================
 
-const CONSULTORES = ["Ana Karoline Cristo Ribeiro","Andreia Ferreira De Oliveira","Beatriz De Oliveira Xavier","Beatriz Moreira De Maria","Beatriz Shiki Portilho","Caroline Silva Santos","Celia De Souza Lima","Edenilson Teodoro Junior","Elaine Kubitz","Erick Alexsander Do Santos","Evelin Cristini Da Silva","Fernanda Magioto","Gabriel Candido Silva","Gessica Da Cruz Barturi Luciano","Giovana Rossi","Giovanna Cadide Cabral","Gislaine Angélica Rodrigues Silva","Gustavo Qualho Cazoni","Helen Almeida Maffioletti","Henrique Caua Cupertino Navarro","Ingrid Kawane Ribeiro Moreira","Isabela Cristina Melo Agostini","Joselma Oliveira Jardim","Joyce Andressa Da Silva Valentino","Julia Caroline Da Silva Pessoa","Julie Ndinga Zeferino Da Silva","Leandra Santos Lorenzetti","Leonardo Neves Dos Santos","Leonardo Salvalagio Gibin","Luciana Simili Crecencio","Marcos Vinícius Ferreira Fontes","Mariane Oliveira Dias","Neide Dagues Costa","Pedro Henrique Ribeiro Dos Santos","Sabrina Manoela Dos Santos Lima","Sabrina Soares Santos Guido","Sander Miguel Figueroa","Sandra Regina Braziel","Sarah Da Silva Purnucena","Sthefanny Dayanne Da Silva Roberto","Talita Araujo Dos Santos","Tauany Bezerra De Souza","Thayssa Victoria Da Silva Pereira","Vanusa Silvino","Victor Kendy Kozina","Willyan Gabriel Lopes Moreira De Almeida","Yara Caleffi Costa"];
+const CONSULTORES = [
+  "Ana Karoline Cristo Ribeiro",
+  "Andreia Ferreira De Oliveira",
+  "Beatriz De Oliveira Xavier",
+  "Beatriz Moreira De Maria",
+  "Beatriz Shiki Portilho",
+  "Caroline Silva Santos",
+  "Celia De Souza Lima",
+  "Edenilson Teodoro Junior",
+  "Elaine Kubitz",
+  "Emily Emanuelly de Souza",
+  "Erick Alexsander Do Santos",
+  "Evelin Cristini Da Silva",
+  "Fernanda Magioto",
+  "Gabriel Candido Silva",
+  "Gessica Da Cruz Barturi Luciano",
+  "Giovana Rossi",
+  "Giovanna Cadide Cabral",
+  "Gislaine Angélica Rodrigues Silva",
+  "Gustavo Qualho Cazoni",
+  "Helen Almeida Maffioletti",
+  "Henrique Caua Cupertino Navarro",
+  "Ingrid Kawane Ribeiro Moreira",
+  "Isabela Cristina Melo Agostini",
+  "Joselma Oliveira Jardim",
+  "Joyce Andressa Da Silva Valentino",
+  "Julia Caroline Da Silva Pessoa",
+  "Julie Ndinga Zeferino Da Silva",
+  "Leandra Santos Lorenzetti",
+  "Leonardo Neves Dos Santos",
+  "Leonardo Salvalagio Gibin",
+  "Lucas Brito Medeiros da Silva",
+  "Luciana Simili Crecencio",
+  "Malu Amaral Kanda",
+  "Marcos Vinícius Ferreira Fontes",
+  "Mariane Oliveira Dias",
+  "Neide Dagues Costa",
+  "Pedro Henrique Ribeiro Dos Santos",
+  "Sabrina Manoela Dos Santos Lima",
+  "Sabrina Soares Santos Guido",
+  "Sander Miguel Figueroa",
+  "Sandra Regina Braziel",
+  "Sarah Da Silva Purnucena",
+  "Sthefanny Dayanne Da Silva Roberto",
+  "Talita Araujo Dos Santos",
+  "Tauany Bezerra De Souza",
+  "Thayssa Victoria Da Silva Pereira",
+  "Vanusa Silvino",
+  "Victor Kendy Kozina",
+  "Willyan Gabriel Lopes Moreira De Almeida",
+  "Yara Caleffi Costa",
+  // ── Adicione novos consultores aqui, um por linha ──
+];
 
 const POLOS = ["Abelardo Luz - SC","Abreu e Lima - PE","Açailândia - MA","Acaraú - CE","Adamantina - SP","Afogados da Ingazeira - PE","Afrânio - PE","Afuá - PA","Águas Belas - PE","Águas Formosas - MG","Águas Lindas de Goiás - GO","Água Branca - PI","Alagoinhas - BA","Alegrete - RS","Alfenas - MG","Almirante Tamandaré - PR","Alta Floresta - MT","Alta Floresta D'Oeste - RO","Altamira - PA","Altônia - PR","Alvorada - RS","Amarante do Maranhão - MA","Amambai - MS","Americana - SP","Amontada - CE","Amparo - SP","Anajás - PA","Anápolis - GO","Ananindeua - Centro - PA","Ananindeua - Cidade Nova - PA","Andradina - SP","Andradas - MG","Andirá - PR","Angra dos Reis - RJ","Aparecida - SP","Aparecida de Goiânia - GO","Aparecida do Taboado - MS","Apiaí - SP","Apucarana - PR","Araguaína - TO","Araguari - MG","Araguatins - TO","Arapongas - PR","Araranguá - SC","Araras - SP","Araraquara - SP","Araripina - PE","Araruama - RJ","Araçatuba - SP","Araxá - MG","Arcos - MG","Areia Branca - RN","Ariquemes - RO","Artur Nogueira - SP","Arujá - SP","Assis - SP","Assis Chateaubriand - PR","Astorga - PR","Atibaia - SP","Augustinópolis - TO","Avaré - SP","Bagé - RS","Bagre - PA","Balneário Camboriú - SC","Balsas - MA","Bandeirantes - PR","Barbalha - CE","Barcarena - PA","Barra Bonita - SP","Barra Mansa - RJ","Barra Velha - SC","Barra do Corda - MA","Barra do Garças - MT","Barra do Piraí - RJ","Barreiras - BA","Barreiros - PE","Barretos - SP","Barreirinhas - MA","Barão de Cocais - MG","Batatais - SP","Bataguassu - MS","Batalha - PI","Baturité - CE","Bauru - Cidade Universitária - SP","Bauru - Estoril - SP","Barueri - Alphaville - SP","Barueri - SP","Bebedouro - SP","Beberibe - CE","Bela Cruz - CE","Belém - PA","Belford Roxo - RJ","Belo Horizonte - Barreiro - MG","Belo Horizonte - Floresta - MG","Belo Horizonte - Padre Eustáquio - MG","Belo Horizonte - Pampulha - MG","Belo Horizonte - Planalto - MG","Belo Horizonte - Renascença - MG","Belo Horizonte - Santa Lúcia - MG","Belo Horizonte - Savassi - MG","Belo Horizonte - Venda Nova - MG","Bento Gonçalves - RS","Betim - MG","Birigui - SP","Bituruna - PR","Blumenau - SC","Boa Esperança - MG","Boa Vista - RR","Botucatu - SP","Bragança - PA","Bragança Paulista - SP","Braço do Norte - SC","Brasília - Asa Sul - DF","Brejo Santo - CE","Brumado - BA","Brumadinho - MG","Brusque - SC","Buritis - RO","Butiá - RS","Caarapó - MS","Caçador - SC","Cacoal - RO","Caetité - BA","Cafelândia - PR","Cajati - SP","Cajazeiras - PB","Camaquã - RS","Cambé - PR","Camboriú - SC","Camocim - CE","Camaçari - BA","Camaragibe - PE","Campina Grande - PB","Campinas - SP","Campo Grande - MS","Campo Mourão - PR","Campos dos Goytacazes - RJ","Canindé - CE","Canoas - RS","Capanema - PR","Capivari de Baixo - SC","Caraguatatuba - SP","Cariacica - ES","Caruaru - PE","Cascavel - PR","Castanhal - PA","Catalão - GO","Cataguases - MG","Catanduva - SP","Caucaia - CE","Caxias do Sul - RS","Ceilândia - DF","Chapecó - SC","Charqueadas - RS","Cianorte - PR","Colatina - ES","Colombo - PR","Concórdia - SC","Contagem - MG","Cornélio Procópio - PR","Coronel Fabriciano - MG","Corumbá - MS","Cosmópolis - SP","Cotia - SP","Crato - CE","Criciúma - SC","Cruzeiro do Sul - AC","Cubatão - SP","Cuiabá - MT","Curitiba - Boa Vista - PR","Curitiba - Cajuru - PR","Curitiba - Campus - PR","Curitiba - Centro - PR","Curitiba - Cidade Industrial - PR","Curitiba - Hauer - PR","Curitiba - Pinheirinho - PR","Diadema - SP","Divinópolis - MG","Dois Vizinhos - PR","Dom Pedrito - RS","Dourados - MS","Duque de Caxias - RJ","Erechim - RS","Escada - PE","Esteio - RS","Eunápolis - BA","Eusébio - CE","Farroupilha - RS","Fazenda Rio Grande - PR","Feira de Santana - BA","Fernandópolis - SP","Floresta - PE","Floriano - PI","Florianópolis - SC","Formiga - MG","Forquilhinha - SC","Fortaleza - Centro - CE","Fortaleza - Parangaba - CE","Fortaleza - Washington Soares - CE","Foz do Iguaçu - PR","Franca - SP","Francisco Beltrão - PR","Frederico Westphalen - RS","Frutal - MG","Gama - DF","Garanhuns - PE","Gaspar - SC","Goiânia - GO","Governador Valadares - MG","Gravataí - RS","Guarapari - ES","Guarapuava - PR","Guaratinguetá - SP","Guarujá - SP","Guarulhos - SP","Guaxupé - MG","Horizonte - CE","Hortolândia - SP","Ilhéus - BA","Imbituba - SC","Imperatriz - MA","Indaial - SC","Indaiatuba - SP","Ipatinga - MG","Irati - PR","Itabaiana - SE","Itabira - MG","Itabuna - BA","Itaguaí - RJ","Itajaí - SC","Itajubá - MG","Itapecerica da Serra - SP","Itapema - SC","Itapetinga - BA","Itapetininga - SP","Itapeva - SP","Itapevi - SP","Itapipoca - CE","Itu - SP","Ituiutaba - MG","Jacareí - SP","Jacobina - BA","Jaraguá do Sul - SC","Jataí - GO","Jaú - SP","Ji-Paraná - RO","Joaçaba - SC","João Pessoa - PB","Joinville - SC","Juazeiro do Norte - CE","Juiz de Fora - MG","Jundiaí - SP","Lajeado - RS","Laranjeiras do Sul - PR","Lauro de Freitas - BA","Lavras - MG","Leme - SP","Limeira - SP","Linhares - ES","Lins - SP","Londrina - PR","Lorena - SP","Lucas do Rio Verde - MT","Luziânia - GO","Macaé - RJ","Macapá - AP","Maceió - AL","Manaus - AM","Marabá - PA","Maracanaú - CE","Marília - SP","Maringá - PR","Mauá - SP","Medianeira - PR","Mineiros - GO","Mirassol - SP","Mogi das Cruzes - SP","Montes Claros - MG","Mossoró - RN","Muriaé - MG","Natal - RN","Naviraí - MS","Nilópolis - RJ","Niterói - RJ","Nova Iguaçu - RJ","Nova Lima - MG","Novo Hamburgo - RS","Olinda - PE","Osasco - SP","Osório - RS","Ourinhos - SP","Ouro Preto - MG","Palmas - TO","Palmeira das Missões - RS","Palotina - PR","Paranaguá - PR","Parnamirim - RN","Passo Fundo - RS","Pato Branco - PR","Patos de Minas - MG","Paulo Afonso - BA","Paulista - PE","Pelotas - RS","Penedo - AL","Petrolina - PE","Petrópolis - RJ","Picos - PI","Piracicaba - SP","Pirapora - MG","Piraquara - PR","Planaltina - DF","Poços de Caldas - MG","Ponta Grossa - PR","Ponta Porã - MS","Porto Alegre - RS","Porto Ferreira - SP","Porto Nacional - TO","Porto Seguro - BA","Porto Velho - RO","Pouso Alegre - MG","Presidente Prudente - SP","Quixadá - CE","Redenção - PA","Resende - RJ","Ribeirão Preto - SP","Rio Branco - AC","Rio Claro - SP","Rio Grande - RS","Rio Verde - GO","Rio de Janeiro - Bangu - RJ","Rio de Janeiro - Barra da Tijuca - RJ","Rio de Janeiro - Bonsucesso - RJ","Rio de Janeiro - Botafogo - RJ","Rio de Janeiro - Campo Grande - RJ","Rio de Janeiro - Centro - RJ","Rio de Janeiro - Copacabana - RJ","Rio de Janeiro - Jacarepaguá - RJ","Rio de Janeiro - Madureira - RJ","Rio de Janeiro - Penha - RJ","Rio de Janeiro - Realengo - RJ","Rio de Janeiro - Santa Cruz - RJ","Rio de Janeiro - Tijuca - RJ","Rio de Janeiro - Vila Isabel - RJ","Rolândia - PR","Rondonópolis - MT","Rosana - SP","Salvador - BA","Santa Cruz do Sul - RS","Santa Maria - RS","Santa Rosa - RS","Santana de Parnaíba - SP","Santarém - PA","Santiago - RS","Santo André - SP","Santos - SP","São Bernardo do Campo - SP","São Carlos - SP","São Gonçalo - RJ","São João de Meriti - RJ","São José - SC","São José do Rio Preto - SP","São José dos Campos - SP","São José dos Pinhais - PR","São Leopoldo - RS","São Luís - MA","São Mateus - ES","São Paulo - Aclimação - SP","São Paulo - Aricanduva - SP","São Paulo - Barra Funda - SP","São Paulo - Brasilândia - SP","São Paulo - Capão Redondo - SP","São Paulo - Casa Verde - SP","São Paulo - Faria Lima - SP","São Paulo - Guaianases - SP","São Paulo - Interlagos - SP","São Paulo - Itaquera - SP","São Paulo - Jabaquara - SP","São Paulo - Lapa - SP","São Paulo - Mooca - SP","São Paulo - Morumbi - SP","São Paulo - Paulista - SP","São Paulo - Penha - SP","São Paulo - República - SP","São Paulo - Santana - SP","São Paulo - Santo Amaro - SP","São Paulo - São Mateus - SP","São Paulo - Sapopemba - SP","São Paulo - Saúde - SP","São Paulo - Tatuapé - SP","São Paulo - Tucuruvi - SP","São Paulo - Vila Carrão - SP","São Paulo - Vila Pirituba - SP","São Vicente - SP","Sapucaia do Sul - RS","Sarandi - PR","Senador Canedo - GO","Serra - ES","Sete Lagoas - MG","Sinop - MT","Sobral - CE","Sorocaba - SP","Sorriso - MT","Sumaré - SP","Suzano - SP","Taguatinga - DF","Taubaté - SP","Tatuí - SP","Taboão da Serra - SP","Telêmaco Borba - PR","Teresina - PI","Teresópolis - RJ","Teutônia - RS","Teixeira de Freitas - BA","Tijucas - SC","Timon - MA","Tocantinópolis - TO","Toledo - PR","Tramandaí - RS","Três Lagoas - MS","Três Rios - RJ","Tubarão - SC","Tupã - SP","Uberaba - MG","Uberlândia - MG","Umuarama - PR","União da Vitória - PR","Uruguaiana - RS","Valença - BA","Valinhos - SP","Valparaíso de Goiás - GO","Venâncio Aires - RS","Viamão - RS","Viçosa - MG","Videira - SC","Vila Velha - ES","Vilhena - RO","Vitória - ES","Vitória de Santo Antão - PE","Volta Redonda - RJ","Votuporanga - SP","Xanxerê - SC","Zé Doca - MA"];
 
@@ -397,12 +497,44 @@ const POR_PAG  = 20;
 let chartC = null, chartT = null;
 
 // ── Navegação ──
+// Senha do dashboard — altere aqui para trocar
+const SENHA_DASH = "Aceleradores@2026";
+let dashLiberado = false;
+let _btnPendente = null;
+
 function showPage(id, btn) {
+  if (id === 'dash-page' && !dashLiberado) {
+    _btnPendente = btn;
+    document.getElementById('senhaInput').value = '';
+    document.getElementById('senhaErro').style.display = 'none';
+    document.getElementById('senhaOverlay').style.display = 'flex';
+    setTimeout(() => document.getElementById('senhaInput').focus(), 100);
+    return;
+  }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   if (id === 'dash-page' && todosDados.length === 0) carregarDados();
+}
+
+function verificarSenha() {
+  const val = document.getElementById('senhaInput').value;
+  if (val === SENHA_DASH) {
+    dashLiberado = true;
+    document.getElementById('senhaOverlay').style.display = 'none';
+    showPage('dash-page', _btnPendente);
+  } else {
+    const erro = document.getElementById('senhaErro');
+    erro.style.display = 'block';
+    document.getElementById('senhaInput').value = '';
+    document.getElementById('senhaInput').focus();
+    setTimeout(() => erro.style.display = 'none', 3000);
+  }
+}
+
+function fecharSenha() {
+  document.getElementById('senhaOverlay').style.display = 'none';
 }
 
 // ── Init formulário ──
