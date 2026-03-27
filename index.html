@@ -203,6 +203,28 @@ tbody td{padding:10px 14px;color:#2D3748;vertical-align:middle}
           <label class="label"><span class="num">6</span> Polo <span class="req">*</span></label>
           <div class="sw"><select class="ctrl" id="polo" required><option value="">Selecione o Polo</option></select></div>
         </div>
+        <div class="group">
+          <label class="label"><span class="num">7</span> Tipo de Curso <span class="req">*</span></label>
+          <div class="sw">
+            <select class="ctrl" id="tipoCurso" required>
+              <option value="">Selecione o Tipo de Curso</option>
+              <option value="Graduação">Graduação</option>
+              <option value="Ed. Continuada">Ed. Continuada</option>
+            </select>
+          </div>
+        </div>
+        <div class="group">
+          <label class="label"><span class="num">8</span> Gestor(a) <span class="req">*</span></label>
+          <div class="sw">
+            <select class="ctrl" id="gestor" required>
+              <option value="">Selecione o(a) Gestor(a)</option>
+              <option value="Claudenice Maria Sales Ribeiro Barros">Claudenice Maria Sales Ribeiro Barros</option>
+              <option value="Clayton Eugenio Ramos dos Santos">Clayton Eugenio Ramos dos Santos</option>
+              <option value="Jhonatan Erik Ribeiro Dias">Jhonatan Erik Ribeiro Dias</option>
+              <option value="Rafael Marcos Pereira">Rafael Marcos Pereira</option>
+            </select>
+          </div>
+        </div>
       </div>
       <div class="foot">
         <button class="btn btn-s" onclick="limpar()" id="btnLimpar">Limpar</button>
@@ -251,7 +273,8 @@ tbody td{padding:10px 14px;color:#2D3748;vertical-align:middle}
           <thead>
             <tr>
               <th>#</th><th>Consultor(a)</th><th>Nº Candidato</th>
-              <th>Data Pgto.</th><th>Polo</th><th>Observações</th>
+              <th>Data Pgto.</th><th>Polo</th><th>Tipo</th>
+              <th>Gestor(a)</th><th>Observações</th>
               <th>Link</th><th>Registrado Em</th>
             </tr>
           </thead>
@@ -331,7 +354,7 @@ function setLoading(on) {
 }
 
 async function registrar() {
-  const campos=['consultor','candidato','dataPagamento','linkConversa','observacoes','polo'];
+  const campos=['consultor','candidato','dataPagamento','linkConversa','observacoes','polo','tipoCurso','gestor'];
   let valido=true;
   campos.forEach(id=>{
     const el=document.getElementById(id);
@@ -347,6 +370,8 @@ async function registrar() {
     link:document.getElementById('linkConversa').value,
     obs:document.getElementById('observacoes').value,
     polo:document.getElementById('polo').value,
+    tipo_curso:document.getElementById('tipoCurso').value,
+    gestor:document.getElementById('gestor').value,
   };
 
   setLoading(true);
@@ -363,7 +388,7 @@ async function registrar() {
 // ── Dashboard: carregar dados ──
 async function carregarDados() {
   const tbody=document.getElementById('tbody');
-  tbody.innerHTML=`<tr><td colspan="8"><div class="loading-state"><div class="spin-big"></div><p>Carregando dados da planilha...</p></div></td></tr>`;
+  tbody.innerHTML=`<tr><td colspan="10"><div class="loading-state"><div class="spin-big"></div><p>Carregando dados da planilha...</p></div></td></tr>`;
   document.getElementById('dashSub').textContent='Carregando...';
 
   try {
@@ -391,17 +416,26 @@ async function carregarDados() {
       return s;
     }
 
-    // A API gviz já exclui o cabeçalho automaticamente — não usar slice(1)
-    todosDados=rows.map((r,i)=>({
-      id:       r.c[0]?.v ?? i+1,
-      consultor:r.c[1]?.v ?? '',
-      candidato:String(r.c[2]?.v ?? ''),
-      data:     parseGDate(r.c[3]?.v),
-      link:     r.c[4]?.v ?? '',
-      obs:      r.c[5]?.v ?? '',
-      polo:     r.c[6]?.v ?? '',
-      reg_em:   parseGDate(r.c[7]?.v),
-    })).filter(d=>d.consultor);
+    // Ignora linha de cabeçalho caso a API a inclua nas rows
+    const CABECALHOS = ['id','consultor','consultor(a)','nome','candidato','polo','data','registrado'];
+    todosDados=rows
+      .filter(r => {
+        const val = String(r.c[1]?.v ?? '').toLowerCase().trim();
+        return val && !CABECALHOS.some(c => val.includes(c));
+      })
+      .map((r,i)=>({
+        id:         r.c[0]?.v ?? i+1,
+        consultor:  r.c[1]?.v ?? '',
+        candidato:  String(r.c[2]?.v ?? ''),
+        data:       parseGDate(r.c[3]?.v),
+        link:       r.c[4]?.v ?? '',
+        obs:        r.c[5]?.v ?? '',
+        polo:       r.c[6]?.v ?? '',
+        reg_em:     parseGDate(r.c[7]?.v),
+        tipo_curso: r.c[8]?.v ?? '',
+        gestor:     r.c[9]?.v ?? '',
+      }))
+      .filter(d=>d.consultor);
 
     const agora=new Date().toLocaleString('pt-BR');
     document.getElementById('dashSub').textContent=`Atualizado em: ${agora} · ${todosDados.length} registro(s)`;
@@ -411,7 +445,7 @@ async function carregarDados() {
     pagAtual=1;
     renderTabela();
   } catch(err){
-    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><p>⚠ Não foi possível carregar os dados.</p><small>Verifique se a planilha está pública e o SHEET_ID está correto.</small></div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state"><p>⚠ Não foi possível carregar os dados.</p><small>Verifique se a planilha está pública e o SHEET_ID está correto.</small></div></td></tr>`;
     document.getElementById('dashSub').textContent='Erro ao carregar dados.';
     console.error(err);
   }
@@ -460,7 +494,7 @@ function fmtData(d){
 function renderTabela(){
   const tbody=document.getElementById('tbody');
   if(!filtrados.length){
-    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><p>Nenhum registro encontrado.</p><small>Os dados aparecem aqui após o primeiro envio do formulário.</small></div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state"><p>Nenhum registro encontrado.</p><small>Os dados aparecem aqui após o primeiro envio do formulário.</small></div></td></tr>`;
     document.getElementById('pag').innerHTML='';return;
   }
   const inicio=(pagAtual-1)*POR_PAG;
@@ -472,6 +506,8 @@ function renderTabela(){
       <td>${d.candidato||'–'}</td>
       <td>${fmtData(d.data)}</td>
       <td>${d.polo||'–'}</td>
+      <td>${d.tipo_curso||'–'}</td>
+      <td>${d.gestor ? d.gestor.split(' ')[0]+' '+d.gestor.split(' ').slice(-1)[0] : '–'}</td>
       <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${d.obs||''}">${d.obs||'–'}</td>
       <td>${d.link?`<a class="link-a" href="${d.link}" target="_blank">🔗 Abrir</a>`:'–'}</td>
       <td style="white-space:nowrap">${d.reg_em||'–'}</td>
@@ -497,11 +533,11 @@ function irPag(p){pagAtual=p;renderTabela();window.scrollTo(0,document.querySele
 
 function exportarExcel(){
   if(!todosDados.length){toast('Não há dados para exportar.','#C97A00');return;}
-  const rows=todosDados.map(d=>({'ID':d.id,'Consultor(a)':d.consultor,'Nº Candidato':d.candidato,'Data Pagamento':fmtData(d.data),'Polo':d.polo,'Observações':d.obs,'Link Conversa':d.link,'Registrado Em':d.reg_em}));
+  const rows=todosDados.map(d=>({'ID':d.id,'Consultor(a)':d.consultor,'Nº Candidato':d.candidato,'Data Pagamento':fmtData(d.data),'Polo':d.polo,'Tipo de Curso':d.tipo_curso||'','Gestor(a)':d.gestor||'','Observações':d.obs,'Link Conversa':d.link,'Registrado Em':d.reg_em}));
   const ws=XLSX.utils.json_to_sheet(rows);
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Matrículas');
-  ws['!cols']=[{wch:6},{wch:36},{wch:16},{wch:16},{wch:42},{wch:38},{wch:40},{wch:20}];
+  ws['!cols']=[{wch:6},{wch:36},{wch:16},{wch:16},{wch:42},{wch:16},{wch:32},{wch:38},{wch:40},{wch:20}];
   const now=new Date();
   const ts=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
   XLSX.writeFile(wb,`matriculas_aceleradores_${ts}.xlsx`);
