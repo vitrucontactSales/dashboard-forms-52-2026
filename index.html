@@ -321,9 +321,19 @@ tbody td{padding:10px 14px;color:#2D3748;vertical-align:middle}
       <div class="kpi"><div class="kpi-lbl">Registros Hoje</div><div class="kpi-val" id="kHoje">–</div></div>
     </div>
 
-    <div class="charts-grid">
-      <div class="chart-card"><h3>📍 Top 10 Polos</h3><canvas id="cPolo"></canvas></div>
-      <div class="chart-card"><h3>📈 Distribuição por Tipo</h3><canvas id="cTipo"></canvas></div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:24px;align-items:start">
+      <!-- Consultores: barras horizontais -->
+      <div class="chart-card">
+        <h3>📊 Matrículas por Consultor</h3>
+        <div id="cConsultorWrap" style="overflow-y:auto">
+          <canvas id="cConsultor"></canvas>
+        </div>
+      </div>
+      <!-- Tipo de curso: rosca -->
+      <div class="chart-card">
+        <h3>🎓 Tipo de Curso</h3>
+        <canvas id="cTipo" style="max-height:280px"></canvas>
+      </div>
     </div>
 
     <!-- Ranking completo consultores -->
@@ -384,7 +394,7 @@ let todosDados = [];
 let filtrados  = [];
 let pagAtual   = 1;
 const POR_PAG  = 20;
-let chartC = null, chartP = null, chartT = null;
+let chartC = null, chartT = null;
 
 // ── Navegação ──
 function showPage(id, btn) {
@@ -543,31 +553,75 @@ function top10(campo){
   return Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,10);
 }
 
-function top10filtrado(campo){
+function contarCampo(campo, dados){
   const cnt={};
-  filtrados.forEach(d=>{if(d[campo])cnt[d[campo]]=(cnt[d[campo]]||0)+1;});
-  return Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  (dados||filtrados).forEach(d=>{if(d[campo])cnt[d[campo]]=(cnt[d[campo]]||0)+1;});
+  return Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
 }
 
 function renderCharts(){
-  const cores=['#1A4E8C','#2466B0','#3B8DD4','#5BA4E4','#7EC0F0','#2D7A4F','#3DAA6B','#F5A623','#E8722A','#D93B3B'];
-  const t10p=top10filtrado('polo');
-
-  // Tipo de curso
-  const cntTipo={};
-  filtrados.forEach(d=>{if(d.tipo_curso)cntTipo[d.tipo_curso]=(cntTipo[d.tipo_curso]||0)+1;});
-
-  if(chartP)chartP.destroy();
+  if(chartC)chartC.destroy();
   if(chartT)chartT.destroy();
 
-  chartP=new Chart(document.getElementById('cPolo'),{type:'bar',data:{labels:t10p.map(([k])=>k.split(' - ')[0]),datasets:[{data:t10p.map(([,v])=>v),backgroundColor:cores,borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+  // ── Consultores: barras horizontais, todos, ordenados ──
+  const consultData = contarCampo('consultor');
+  const nConsult = consultData.length;
+  const alturaConsult = Math.max(260, nConsult * 34);
+  const wrapC = document.getElementById('cConsultorWrap');
+  const canvC = document.getElementById('cConsultor');
+  canvC.style.height = alturaConsult + 'px';
+  wrapC.style.maxHeight = nConsult > 10 ? '460px' : 'none';
 
-  const tipoLabels=Object.keys(cntTipo);
-  const tipoData=Object.values(cntTipo);
-  chartT=new Chart(document.getElementById('cTipo'),{
-    type:'doughnut',
-    data:{labels:tipoLabels,datasets:[{data:tipoData,backgroundColor:['#1A4E8C','#3B8DD4'],borderWidth:2}]},
-    options:{plugins:{legend:{position:'bottom'}}}
+  chartC = new Chart(canvC, {
+    type: 'bar',
+    data: {
+      labels: consultData.map(([k]) => k),
+      datasets: [{
+        data: consultData.map(([,v]) => v),
+        backgroundColor: '#1A4E8C',
+        hoverBackgroundColor: '#3B8DD4',
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#EDF2F7' } },
+        y: { ticks: { font: { size: 11 }, color: '#2D3748' }, grid: { display: false } }
+      }
+    }
+  });
+
+  // ── Tipo de curso: rosca com percentual ──
+  const tipoData = contarCampo('tipo_curso');
+  const totalTipo = tipoData.reduce((s,[,v])=>s+v,0);
+  chartT = new Chart(document.getElementById('cTipo'), {
+    type: 'doughnut',
+    data: {
+      labels: tipoData.map(([k,v]) => `${k||'Não informado'} (${Math.round(v/totalTipo*100)}%)`),
+      datasets: [{
+        data: tipoData.map(([,v]) => v),
+        backgroundColor: ['#1A4E8C','#3B8DD4','#7EC0F0'],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 14 } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const val = ctx.parsed;
+              const pct = Math.round(val/totalTipo*100);
+              return ` ${val} matrículas (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
   });
 }
 
